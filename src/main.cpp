@@ -13,29 +13,9 @@ const float kp = 0.1;
 const float ki = 0.035;
 const float kd = 0.0;
 const float sample_time = 0.02; // 20ms sample time
-
 PID pid_controller(kp, ki, kd, sample_time);
 
-CAN can(PA_11, PA_12, (int)1e6);
-CANMessage msg;
-// エンコーダの位置データ
-volatile int32_t encoder_position = 0;
-
 bool flag = false;
-
-// 割り込みハンドラ
-void Switch_Stop()
-{
-    printf("Stop\n");
-    speed = 0; // 速度0
-    for (int i = 0; i < 8; i += 2)
-    {
-        DATA[i] = (speed >> 8) & 0xFF; // 上位バイト
-        DATA[i + 1] = speed & 0xFF;    // 下位バイト
-
-        CANMessage msg(DJI_ID, DATA, 8);
-    }
-}
 
 int main()
 {
@@ -45,8 +25,9 @@ int main()
         DATA[i] = 0;
     }
     button_reset.mode(PullUp);
-
     BufferedSerial pc(USBTX, USBRX, 115200);
+    CAN can(PA_11, PA_12, (int)1e6);
+    CANMessage msg;
 
     while (1)
     {
